@@ -32,27 +32,27 @@ fn main() {
                 // 只处理 IPv4 数据包
                 if ethernet.get_ethertype() == EtherTypes::Ipv4 {
                     if let Some(ip_packet) = Ipv4Packet::new(ethernet.payload()) {
-                        let header_len = ip_packet.get_header_length() as usize * 4;
-                        let base_header_len = 20;
-                        println!("\nIP包:");
-                        println!("  来源 IP:  {}", ip_packet.get_source());
-                        println!("  目标 IP:  {}", ip_packet.get_destination());
-                        println!("  协议号:   {}", ip_packet.get_next_level_protocol());
-                        // 打印 Options 字段
-                        if header_len > base_header_len {
-                            let full_header = &ip_packet.packet()[..header_len];
-                            let options = &full_header[base_header_len..];
-                            print!("IP Options: ");
-                            for b in options {
-                                print!("{:02x} ", b);
-                            }
-                            println!();
-                        } else {
-                            println!("无 IP Options 字段");
-                        }
-
                         // 只处理 UDP 包
                         if ip_packet.get_next_level_protocol() == IpNextHeaderProtocols::Udp {
+                            let header_len = ip_packet.get_header_length() as usize * 4;
+                            let base_header_len = 20;
+                            println!("\nIP包:");
+                            println!("  来源 IP:  {}", ip_packet.get_source());
+                            println!("  目标 IP:  {}", ip_packet.get_destination());
+                            println!("  协议号:   {}", ip_packet.get_next_level_protocol());
+                            // 打印 Options 字段
+                            if header_len > base_header_len {
+                                let full_header = &ip_packet.packet()[..header_len];
+                                let options = &full_header[base_header_len..];
+                                print!("IP Options: ");
+                                for b in options {
+                                    print!("{:02x} ", b);
+                                }
+                                println!();
+                            } else {
+                                println!("无 IP Options 字段");
+                            }
+
                             if let Some(udp_packet) = UdpPacket::new(ip_packet.payload()) {
                                 println!("UDP包:");
                                 println!("  来源端口: {}", udp_packet.get_source());

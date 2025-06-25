@@ -1,3 +1,5 @@
+use std::net::Ipv4Addr;
+
 use pnet::packet::Packet;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ipv4::MutableIpv4Packet;
@@ -12,6 +14,9 @@ fn main() {
     // 构造 UDP 头部
     let dst_port = 8001;
     let src_port = 54321;
+    // let dst_addr: Ipv4Addr = "222.20.126.106".parse().unwrap();
+    let dst_addr: Ipv4Addr = "127.0.0.1".parse().unwrap();
+
     // 负载数据
     let payload = b"Hello, Biaoshi!";
     let udp_header_len = 8; // UDP 头部固定 8 字节
@@ -34,8 +39,8 @@ fn main() {
     ip_packet.set_total_length((ip_header_len + udp_total_len) as u16);
     ip_packet.set_ttl(64);
     ip_packet.set_next_level_protocol(IpNextHeaderProtocols::Udp);
-    ip_packet.set_source(std::net::Ipv4Addr::new(192, 168, 1, 1));
-    ip_packet.set_destination(std::net::Ipv4Addr::new(127, 0, 0, 1));
+    ip_packet.set_source(std::net::Ipv4Addr::new(172, 30, 73, 89));
+    ip_packet.set_destination(dst_addr);
     ip_packet.set_payload(udp_packet.packet());
 
     let options_buf = ip_packet.get_options_raw_mut();
@@ -45,10 +50,7 @@ fn main() {
     ip_packet.set_payload(&udp_buffer);
 
     // 发送数据包
-    tx.send_to(
-        &ip_packet,
-        std::net::IpAddr::V4(std::net::Ipv4Addr::new(8, 8, 8, 8)),
-    )
-    .expect("发送失败");
+    tx.send_to(&ip_packet, std::net::IpAddr::V4(dst_addr))
+        .expect("发送失败");
     println!("UDP 数据包已发送！");
 }

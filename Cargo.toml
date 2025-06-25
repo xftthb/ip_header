@@ -1,0 +1,10 @@
+[package]
+name = "ip_header"
+version = "0.1.0"
+edition = "2024"
+default-run = "ip_header"
+
+[dependencies]
+libc = "0.2"
+pnet = "0.35.0"
+anyhow = "1.0"  

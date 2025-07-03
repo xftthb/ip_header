@@ -2,6 +2,7 @@ use libc::{self, AF_INET, IPPROTO_RAW, SOCK_RAW, c_void, sockaddr, sockaddr_in};
 use std::mem;
 use std::net::Ipv4Addr;
 use std::process;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 // IPv4头部结构 (符合RFC 791)
 #[repr(C, packed)]
@@ -161,7 +162,8 @@ fn main() {
     let payload = b"Hello, raw IP packet with id!";
 
     // 计算总长度
-    let total_len = mem::size_of::<IPv4Header>() + options_len + payload.len();
+    //let total_len = mem::size_of::<IPv4Header>() + options_len + payload.len();
+    let total_len = mem::size_of::<IPv4Header>() + payload.len();
     ip_header.total_len = (total_len as u16).to_be();
 
     // 获取当前时间戳并设置为标识字段
@@ -179,7 +181,7 @@ fn main() {
             mem::size_of::<IPv4Header>(),
         ));
     }
-    packet.extend_from_slice(&options_data);
+    //packet.extend_from_slice(&options_data);
     packet.extend_from_slice(payload);
 
     // 计算校验和(跳过校验和字段)

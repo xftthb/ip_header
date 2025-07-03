@@ -82,17 +82,38 @@ fn main() -> io::Result<()> {
         }
         println!();
 
-        // 打印完整数据
-        print!("完整数据(hex): ");
-        for b in &buf[..amt] {
-            print!("{:02x} ", b);
+        // UDP数据在IP包头之后
+        let udp_start = 20;
+        
+        // UDP数据包的最小长度为8字节（UDP头）
+        if amt < udp_start + 8 {
+            println!("数据包过短，无法解析UDP头");
+            continue;
         }
-        println!();
 
-        // 尝试打印为字符串
-        match std::str::from_utf8(&buf[..amt]) {
-            Ok(s) => println!("字符串内容: {}", s),
-            Err(_) => println!("（非 UTF-8 数据）"),
+        // UDP头的长度为8字节，负载在UDP头之后
+        let udp_payload_start = udp_start + 8;
+        
+        // 确保不会越界
+        let udp_payload_len = amt.saturating_sub(udp_payload_start);
+        
+        // 打印UDP负载
+        if udp_payload_len > 0 {
+            let udp_payload = &buf[udp_payload_start..udp_payload_start + udp_payload_len];
+            
+            print!("UDP负载(hex): ");
+            for b in udp_payload {
+                print!("{:02x} ", b);
+            }
+            println!();
+            
+            // 尝试打印为字符串，只针对UDP负载
+            match std::str::from_utf8(udp_payload) {
+                Ok(s) => println!("UDP负载字符串内容: {}", s),
+                Err(_) => println!("UDP负载（非 UTF-8 数据）"),
+            }
+        } else {
+            println!("UDP数据包没有负载");
         }
     }
 }

@@ -9,9 +9,9 @@ fn main() -> std::io::Result<()> {
         let (amt, src) = socket.recv_from(&mut buf)?;
         
         // IPv4包的最小长度为20字节（包头）
-        if amt < 20 {
+        /*if amt < 20 {
             println!("收到来自 {}: 数据包过短，无法解析IPv4包头", src);
-            continue;
+            //continue;
         }
 
         // 提取IPv4包头（前20字节）
@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
         // 转换为16进制字符串
         let hex_id = format!("{:02x}{:02x}", identification[0], identification[1]);
         
-        println!("收到来自 {}: Identification字段=0x{}", src, hex_id);
+        println!("收到来自 {}: Identification字段=0x{}", src, hex_id);*/
         
         // 其他数据处理逻辑保持不变...
         println!("数据长度: {} 字节", amt);

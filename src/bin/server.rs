@@ -52,7 +52,8 @@ fn main() {
                             } else {
                                 println!("无 IP Options 字段");
                             }
-
+                            // 输出 identification 字段的值（即时间戳）
+                            println!("  时间戳:   {}", ip_packet.get_identification());
                             if let Some(udp_packet) = UdpPacket::new(ip_packet.payload()) {
                                 println!("UDP包:");
                                 println!("  来源端口: {}", udp_packet.get_source());

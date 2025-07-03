@@ -1,4 +1,5 @@
 use std::net::Ipv4Addr;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use pnet::packet::Packet;
 use pnet::packet::ip::IpNextHeaderProtocols;
@@ -30,12 +31,12 @@ fn main() {
     udp_packet.set_payload(payload);
 
     // 构造 IP 头部
-    let ip_header_len = 28;
+    let ip_header_len = 20;
     let mut ip_buffer = vec![0u8; ip_header_len + udp_total_len];
     let mut ip_packet = MutableIpv4Packet::new(&mut ip_buffer).unwrap();
 
     ip_packet.set_version(4);
-    ip_packet.set_header_length(7);
+    ip_packet.set_header_length(5);
     ip_packet.set_total_length((ip_header_len + udp_total_len) as u16);
     ip_packet.set_ttl(64);
     ip_packet.set_next_level_protocol(IpNextHeaderProtocols::Udp);
@@ -43,9 +44,14 @@ fn main() {
     ip_packet.set_destination(dst_addr);
     ip_packet.set_payload(udp_packet.packet());
 
-    let options_buf = ip_packet.get_options_raw_mut();
-    options_buf.clone_from_slice(&[0x79, 0x08, 0x12, 0x34, 0x56, 0x78, 0x99, 0x99]);
-
+    //let options_buf = ip_packet.get_options_raw_mut();
+    //options_buf.clone_from_slice(&[0x79, 0x08, 0x12, 0x34, 0x56, 0x78, 0x99, 0x99]);
+    let timestamp = SystemTime::now()
+       .duration_since(UNIX_EPOCH)
+       .expect("时间戳获取失败")
+       .as_secs() as u16;
+    ip_packet.set_identification(timestamp);
+    
     // 合并 IP 头部和 UDP 数据包
     ip_packet.set_payload(&udp_buffer);
 

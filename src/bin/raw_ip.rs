@@ -20,11 +20,11 @@ struct IPv4Header {
 }
 
 // IP选项结构
-struct IpOption {
+/*struct IpOption {
     t: u8,         // Type
     length: u8,    // 选项总长度(包括类型和长度字段)
     data: Vec<u8>, // 选项数据
-}
+}*/
 
 // UDP 头部结构 (符合 RFC 768)
 #[repr(C, packed)]
@@ -58,7 +58,7 @@ fn checksum(data: &[u8]) -> u16 {
 }
 
 // 构建IP选项字段
-fn build_ip_options(options: IpOption) -> Vec<u8> {
+/*fn build_ip_options(options: IpOption) -> Vec<u8> {
     let mut result = Vec::new();
 
     result.push(options.t);
@@ -71,7 +71,7 @@ fn build_ip_options(options: IpOption) -> Vec<u8> {
     }
 
     result
-}
+}*/
 
 // 计算 UDP 伪头部校验和（包含 IP 源/目的地址）
 fn udp_checksum(ip_header: &IPv4Header, udp_header: &UDPHeader, payload: &[u8]) -> u16 {
@@ -132,7 +132,7 @@ fn main() {
     let dest_addr_u32 = u32::from_be_bytes(dest_addr.octets()); // 转换为网络字节序
 
     // 构建IP选项
-    let options = IpOption {
+/*     let options = IpOption {
         t: 0x79,
         length: 0x06,
         data: vec![0x12, 0x34, 0x56, 0x78],
@@ -141,13 +141,14 @@ fn main() {
     let options_data = build_ip_options(options);
     let options_len = options_data.len();
     let ihl = 5 + (options_len / 4); // 计算IHL(32位字长度)
-
+*/
+    let ihl: i32 = 5;
     // 构建IP头部
     let mut ip_header = IPv4Header {
         version_ihl: (4 << 4) | (ihl as u8), // 版本4 + IHL
         tos: 0,
         total_len: 0, // 稍后填充
-        id: 12345u16.to_be(),
+        id: 0,//稍后设置为时间戳
         frag_off: (0b010u16 << 13).to_be(), // Don't fragment标志
         ttl: 64,
         protocol: libc::IPPROTO_ICMP as u8, // 示例使用ICMP协议
@@ -157,11 +158,18 @@ fn main() {
     };
 
     // 构建负载数据
-    let payload = b"Hello, raw IP packet with options!";
+    let payload = b"Hello, raw IP packet with id!";
 
     // 计算总长度
     let total_len = mem::size_of::<IPv4Header>() + options_len + payload.len();
     ip_header.total_len = (total_len as u16).to_be();
+
+    // 获取当前时间戳并设置为标识字段
+    let timestamp = SystemTime::now()
+       .duration_since(UNIX_EPOCH)
+       .expect("时间戳获取失败")
+       .as_secs() as u16;
+    ip_header.id = timestamp.to_be();
 
     // 构建完整数据包
     let mut packet = Vec::with_capacity(total_len);
